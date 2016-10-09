@@ -13,8 +13,8 @@ import java.util.TimerTask;
 
 
 public class Server {
-	ArrayList clients = new ArrayList();
-	ArrayList clientsIn = new ArrayList();
+	ArrayList<PrintWriter> clients = new ArrayList<PrintWriter>();
+	ArrayList<InputStreamReader> clientsIn = new ArrayList<InputStreamReader>();
 	ServerSocket server;
 	Server(){
 		Timer t = new Timer();
@@ -42,7 +42,7 @@ public class Server {
 			}
 		}
 		public void broadcast(String message){
-			Iterator i = clients.iterator();
+			Iterator<PrintWriter> i = clients.iterator();
 			while(i.hasNext()){
 				try{
 					PrintWriter pw = (PrintWriter) i.next();
@@ -53,7 +53,7 @@ public class Server {
 		}
 		public void getAndSend(){
 			while(true){
-				Iterator i = clientsIn.iterator();
+				Iterator<InputStreamReader> i = clientsIn.iterator();
 				while(i.hasNext()){
 					try{
 						InputStreamReader pw = (InputStreamReader) i.next();
