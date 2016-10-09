@@ -1,6 +1,8 @@
 package com.screenShare;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
+
 
 import java.awt.*;
 import java.awt.event.*;
@@ -31,6 +33,7 @@ public class Screen{
 		}catch(Exception e){}
 		Timer t = new Timer();
 		t.schedule(new Update(), 0, 1);
+		t.schedule(new SendGet(), 0, 100);
 	}
 	class Update extends TimerTask{
 		@Override
@@ -39,6 +42,7 @@ public class Screen{
 		}
 	}
 	BufferedImage screen;
+	BufferedImage otherScreen;
 	class Panel extends JPanel{
 		protected void paintComponent(Graphics g){
 			Robot r = null;
@@ -51,6 +55,46 @@ public class Screen{
 			screen = r.createScreenCapture(new Rectangle(screenSize));
 //			screen = (BufferedImage) screen.getScaledInstance(screenSize.width, screenSize.height, Image.SCALE_SMOOTH);
 			g.drawImage(screen, 0, 0, (int)(this.getHeight()*screenSize.getWidth()/screenSize.getHeight()), this.getHeight(), null);
+		}
+	}
+	class SendGet extends TimerTask{
+
+		@Override
+		public void run() {
+			Runnable r = new GetImg();
+			Thread t = new Thread(r);
+			t.start();
+			Runnable r2 = new Send();
+			Thread t2 = new Thread(r2);
+			t2.start();
+		}
+		
+	}
+	class GetImg implements Runnable{
+		public synchronized void run() {
+			try {
+				InputStreamReader isr = new InputStreamReader(chatSoc.getInputStream());
+				BufferedReader br = new BufferedReader(isr);
+				byte[] b = br.readLine().getBytes();
+				InputStream in = new ByteArrayInputStream(b);
+				otherScreen = ImageIO.read(in);
+			} catch (Exception e) {
+//				e.printStackTrace();
+				}
+		}
+	}
+	
+	class Send implements Runnable{
+		public synchronized void run() {
+			try {
+				PrintWriter pw = new PrintWriter(chatSoc.getOutputStream());
+				ByteArrayOutputStream baos=new ByteArrayOutputStream();
+				ImageIO.write(screen, "jpg", baos);
+				pw.write(new String(baos.toByteArray()));
+				pw.flush();
+				baos.close();
+			} catch (Exception e){
+				e.printStackTrace();}
 		}
 	}
 }
