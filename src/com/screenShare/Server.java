@@ -1,15 +1,13 @@
 package com.screenShare;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.awt.image.*;
+import java.io.*;
+import java.net.*;
+import java.util.*;
+
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.ImageWriter;
 
 
 public class Server {
@@ -24,7 +22,7 @@ public class Server {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		t.schedule(new GetClients(), 0, 1);
+		t.schedule(new GetClients(), 0, 0);
 	}
 	class GetClients extends TimerTask{
 		
@@ -41,12 +39,14 @@ public class Server {
 				} catch (Exception e) {e.printStackTrace();}
 			}
 		}
-		public void broadcast(String message){
+		public void broadcast(BufferedImage img){
 			Iterator<PrintWriter> i = clients.iterator();
 			while(i.hasNext()){
 				try{
 					PrintWriter pw = (PrintWriter) i.next();
-					pw.println(message);
+					ByteArrayOutputStream baos=new ByteArrayOutputStream();
+					ImageIO.write(img, "png", baos);
+					pw.write(new String(baos.toByteArray()));
 					pw.flush();
 				}catch(Exception e){e.printStackTrace();}
 			}
@@ -58,7 +58,9 @@ public class Server {
 					try{
 						InputStreamReader pw = (InputStreamReader) i.next();
 						BufferedReader br = new BufferedReader(pw);
-						broadcast(br.readLine());
+						byte[] b = br.readLine().getBytes();
+						InputStream in = new ByteArrayInputStream(b);
+						broadcast(ImageIO.read(in));
 					}catch(Exception e){e.printStackTrace();}
 				}
 			}
